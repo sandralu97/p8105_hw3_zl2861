@@ -210,7 +210,7 @@ noaa_df %>%
     )
   ) %>% 
   group_by(id,year,monthname) %>% 
-  summarize(mean_tmax = mean(tmax)) %>% 
+  summarize(mean_tmax = mean(tmax),na.rm = TRUE) %>% 
   ggplot(aes(x=year,y=mean_tmax,group = id,color = id))+geom_point()+geom_path()+ theme(legend.position = "none")+facet_grid(. ~ monthname)+
   labs(
     title = "Mean Maximum Temperature in New York",
@@ -222,7 +222,12 @@ noaa_df %>%
 ```
 
 
+**tmax vs tmin &  the distribution of snowfall**
 
+```{r}
+noaa_df %>% 
+  ggplot(aes(x=tmax, y=tmin))+geom_hex()
+```
 
 
 
