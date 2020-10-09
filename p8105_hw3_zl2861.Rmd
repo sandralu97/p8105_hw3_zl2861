@@ -119,31 +119,107 @@ This dataset contains the activity count measure by Accelerometers of a 63 year-
 
 ```{r}
 accel_df %>% 
+    mutate(
+    day = factor(day),
+    day_num = case_when(
+      day == "Monday" ~ 1,
+      day == "Tuesday" ~ 2,
+      day == "Wednesday" ~3,
+      day == "Thursday" ~4,
+      day == "Friday" ~5,
+      day == "Saturday" ~6,
+      day == "Sunday" ~7
+    ),
+    day = fct_reorder(day,day_num)
+  ) %>% 
   group_by(week,day) %>% 
   summarise(total_activity = sum(activity_count))%>% 
+  pivot_wider(
+    names_from = day,
+    values_from = total_activity
+  ) %>% 
   knitr::kable()
 
 ```
 
-It is apprent to see any trend according to the table
+This person is not as active on Saturday as other days in the week. His activity is also more stable on Tuesday and Wednesday across the 5 weeks
 
 **Activity over the course of the day**
 
 ```{r}
 accel_df %>% 
-  ggplot (aes(x=minute_of_day, y=activity_count,color = day))+geom_smooth(se = FALSE)
+  ggplot (aes(x=minute_of_day, y=activity_count,color = day))+geom_smooth(se = FALSE)+
+    labs(
+    title = "Activity over the course of the day",
+    x = "Minute of the Day",
+    y = "Activity count"
+  )
 ```
 
 Everyday, the activity count is usually low at mid-night and morning (0-500 min, 12 o'clock to `r round(500/60,digit=0)` o'clock) and stable at around 300 count at day (500-1250 min, `r round(500/60,digit=0)` o'clock to `r round(1250/60,digit=0)` o'clock) then drop again.
 However, there is a peak activity at 500-750 min (`r round(500/60,digit=0)` o'clock to `r round(750/60,digit=0)` o'clock)  on Sunday and 1250 min (`r round(1250/60,digit=0)` o'clock) on Friday.
 
+## Problem 3
+
+load data
+```{r}
+library(p8105.datasets)
+data("ny_noaa")
+```
+
+This dataset contains the information and statistics of weather information in New York. The dimension of this dataset is `r nrow(ny_noaa)`*`r ncol(ny_noaa)`. Each weather station has an uniq id (id) and data were entered by date. Weather statistics include precipitation, snowfall, snow depth, maximum temperature and minimum temperature of the day. However, some weather stations only record some of the information. For example, there are `r sum(is.na(ny_noaa$tmin))` missing observations for minumum temperature and `r sum(is.na(ny_noaa$tmax))` missing from maximum temperature
+
+clean data
+
+```{r}
+noaa_df = 
+  ny_noaa %>% 
+    separate(date,into = c("year","month","day"),remove = TRUE,convert = TRUE) %>% 
+mutate(
+  tmax = as.numeric(tmax),
+  tmin = as.numeric(tmin),
+  prcp = prcp/10,
+  tmax = tmax/10,
+  tmin = tmin/10
+)
+  
+```
+
+**Most common observed snowfall value**
+
+```{r}
+noaa_df %>% 
+  drop_na(snow) %>% 
+  count(snow) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
+  filter(rank<4)
+```
+
+The most commonly observed snowfall value is 0, 13 and 25 mm
 
 
+**Average max temperature in Januray and June**
 
+```{r}
+noaa_df %>% 
+  filter(month %in% c(1, 7)) %>% 
+  mutate(
+    monthname = case_when(
+      month == 1 ~ "January",
+      month == 7 ~ "July"
+    )
+  ) %>% 
+  group_by(id,year,monthname) %>% 
+  summarize(mean_tmax = mean(tmax)) %>% 
+  ggplot(aes(x=year,y=mean_tmax,group = id,color = id))+geom_point()+geom_path()+ theme(legend.position = "none")+facet_grid(. ~ monthname)+
+  labs(
+    title = "Mean Maximum Temperature in New York",
+    x = "Time (year)",
+    y = "Mean Maxiumum daily temperature (C)",
+    caption = "Data from the noaa package"
+  )
 
-
-
-
+```
 
 
 
