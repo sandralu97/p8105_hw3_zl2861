@@ -7,6 +7,7 @@ output: github_document
 ```{r echo = FALSE, results='hide'}
 library(tidyverse)
 library(p8105.datasets)
+library(patchwork)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -221,12 +222,36 @@ noaa_df %>%
 
 ```
 
+The maximum temperature in January and July both fluctuated between years with the similar pattern (triangle-like shape) around every 5 years. For example, they are both higher at the beginning of 1990s, then dropped during early 1990s and higher again in mid 1990s. 
+There is an outlier of max temperature (particular lower than others) in January between 1980 and 1985 as well as outliers (particular lower than others) in July between 1985 and 1990, 2000 to 2005 and 2006 to 2010
 
 **tmax vs tmin &  the distribution of snowfall**
 
 ```{r}
+p1 =
 noaa_df %>% 
-  ggplot(aes(x=tmax, y=tmin))+geom_hex()
+  ggplot(aes(x=tmin, y=tmax))+geom_bin2d()+theme(legend.position = "right")+
+    labs(
+    title = "Daily Maximum temperature vs. minimum temperature in New York",
+    x = "Minimum daily temperature(C)",
+    y = "Maxiumum daily temperature (C)",
+    caption = "Data from the noaa package"
+  )
+
+p2=
+noaa_df %>% 
+  mutate(year=as.character(year)) %>% 
+  filter(snow>0 & snow<100) %>% 
+  ggplot(aes(x=year,y=snow))+geom_boxplot()+theme(axis.text.x = element_text(angle=90, vjust=0.5,hjust=1))+
+    labs(
+    title = "Distribution of snowfall in New York",
+    x = "Time (year)",
+    y = "Snowfall (mm)",
+    caption = "Data from the noaa package
+    Only snowfall greater than 0 and less than 100 is included"
+  )
+
+p1/p2
 ```
 
 
