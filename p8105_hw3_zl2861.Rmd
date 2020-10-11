@@ -216,7 +216,7 @@ noaa_df %>%
   labs(
     title = "Mean Maximum Temperature in New York",
     x = "Time (year)",
-    y = "Mean Maxiumum daily temperature (C)",
+    y = "Monthly mean Maxiumum temperature (C)",
     caption = "Data from the noaa package"
   )
 
